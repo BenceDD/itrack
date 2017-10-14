@@ -62,3 +62,74 @@ Ha kész a webalkalmazásunk akkor be kell regisztrálni az alapértelmezett alk
         ]
 
 Ha most megnyitjuk az elso parameterben megadott url-t, bejön a weblap, örülünk. Megjelenik a Szercsy Lávcsy egy HTTP response-ban.
+
+## Statikus weblap hozzáadása
+
+Egy apphoz statikus weblapot a következőképpen lehet hozzáadni:
+
+Adjunk hozzá a projekthez egy templates mappát
+
+a settings.py-hoz adjuk hozzá a kommenttel ellátott sort:
+
+        TEMPLATES = [
+            {
+                'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                'DIRS': [
+        			os.path.join(BASE_DIR, 'templates') #Ide kell templates mappát hozzáadni.
+        		],
+                'APP_DIRS': True,
+                'OPTIONS': {
+                    'context_processors': [
+                        'django.template.context_processors.debug',
+                        'django.template.context_processors.request',
+                        'django.contrib.auth.context_processors.auth',
+                        'django.contrib.messages.context_processors.messages',
+                    ],
+                },
+            },
+        ]
+
+Ez hozzáadja a <project folder>/templates mappát a template mappák listájához.
+
+Rakjunk be egy statikus html lapot az újonnan létrehozott templates mappába.
+
+        `<html>
+            <head></head>
+            <body>
+                <h1>Hello</h1>
+                <p>Hello django!</p>
+            </body>
+        </html>`
+
+Legyen ez a fájl a példa kedvéért a hello.html! Ekkor a példafájlt visszaadó függvény:
+
+        def static(request):
+            return render(request,'hello.html')
+        
+Ezt a következő sorral adjuk hozzá az url-ekhez:
+
+        urlpatterns = [
+            url(r'^$',views.index,name = 'index'),
+            url(r'^static_page',views.static,name = 'static'),
+
+        ]
+
+## Weblap feltöltése pythonból
+
+Weblapot pythonból továbbított adattal template-ekkel töltjük fel. Vegyük példának az alábbi template fájlt:
+
+        <html>
+            	<head></head>
+            	<body>
+            		<h1>Hello</h1>
+            		<p>Hello django template!</p>
+            		<p>Ez template-ből kerül bele: {{Field}} </p>
+        		</body>
+        </html>
+
+Ekkor megvan a lehetőség arra, hogy a {{Field}} részt pythonból töltsük fel, ha a render() függvény context változójának továbbítunk egy dictionaryt, ami rendelkezik a "Field" kulcsú értékkel, pl.:
+
+        def templ_example(request):
+            return render(request,'templ_example.html',context = {"Field":"<h1>Tündér szercsy</h1>"})
+
+A django template-jei [igyekeznek](https://docs.djangoproject.com/en/1.11/ref/templates/language/#automatic-html-escaping) veszélyes karaktereket, mint pl. <,>, stb. kiescape-elni, de **MINDIG LE KELL CSEKKOLNI AZ [OWASP SZABÁLYAIT](https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#XSS_Prevention_Rules), HOGY A DJANGO ESCAPELÉSE AZ ADOTT SZITUÁCIÓBAN ELEGEK-E!**
