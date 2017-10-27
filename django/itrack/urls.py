@@ -17,7 +17,8 @@ from django.conf.urls import include, url
 from django.contrib import admin
 
 urlpatterns = [
-    url(r'^', include('tutorial_app.urls')),
+    url(r'^', include('tutorial_app.urls')), #A dollárjel a regexben: r'^$' bajt csinál.
+    url(r'^rest/', include('rest.urls')),
     #url(r'^tutorial/', include('tutorial_app.urls')),
     #url(r'^admin/', admin.site.urls),
 ]

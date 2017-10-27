@@ -2,7 +2,9 @@ from django.shortcuts import render
 
 from django.http import HttpResponse
 
+import json
+
 # Create your views here.
 
-def index(request):
-    return HttpResponse("Szercsy Lávcsy")
+def example(request):
+	return HttpResponse(json.dumps([{"Szercsy" : "Lavcsy"},1,2,3,4]))
