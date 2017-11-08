@@ -62,4 +62,11 @@ def current_music(request):
     if not result:
         return render(request,'current_music.html',context = {"Field":"Not listening"})
     
-    return render(request,'current_music.html',context = {"Field":result['item']['artists'][0]['name'] + ' - ' + result['item']['name']})
+    sample_playlist = [
+        ['Art1','Album1', 'Cim1'],
+        ['Art2','Album3', 'Cim2'],
+        ['Art3','Album4', 'Cim3'],
+    ]
+
+    return render(request,'current_music.html',context = {"Field":result['item']['artists'][0]['name'] + ' - ' + result['item']['name'], "data": sample_playlist})
+
