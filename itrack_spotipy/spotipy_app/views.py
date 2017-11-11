@@ -4,6 +4,7 @@ import spotipy
 from spotipy import oauth2
 
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 
 # Ez nem view, ezt ki kell tenni máshová!
 
@@ -56,17 +57,20 @@ def current_music(request):
     token = token_info['access_token']
     
     spotify = spotipy.Spotify(auth=token)
-
-    result = spotify.current_playback()
+    result = spotify.current_playback()['item']
     
     if not result:
-        return render(request,'current_music.html',context = {"Field":"Not listening"})
+        return render(request,'current_music.html', context = {"Field": "Not listening"})
     
-    sample_playlist = [
-        ['Art1','Album1', 'Cim1'],
-        ['Art2','Album3', 'Cim2'],
-        ['Art3','Album4', 'Cim3'],
-    ]
+    return render(request,'current_music.html', context = {"Field": result['artists'][0]['name'] + ' - ' + result['name']})
 
-    return render(request,'current_music.html',context = {"Field":result['item']['artists'][0]['name'] + ' - ' + result['item']['name'], "data": sample_playlist})
 
+# AJAX Handling.
+def get_playlist_by_name(request):
+    playlist = request.GET.get('playlist', None)
+    sample_playlist = {
+        '1': {'artist': 'Art1', 'album': 'Album1', 'title': 'Title1'},
+        '2': {'artist': 'Art2', 'album': 'Album2', 'title': 'Title2'},
+        '3': {'artist': 'Art3', 'album': 'Album3', 'title': 'Title3'},
+    }
+    return JsonResponse(sample_playlist)
