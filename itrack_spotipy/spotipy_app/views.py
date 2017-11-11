@@ -52,6 +52,21 @@ def login(request):
     return redirect("/current_music")
 
 def current_music(request):
+    return render(request,'current_music.html')
+
+
+# AJAX Handling.
+def get_playlist_by_name(request):
+    # playlist_name = request.GET.get('playlist', None)
+    sample_playlist = [
+        {'artist': 'Art1', 'album': 'Album1', 'title': 'Title1'},
+        {'artist': 'Art2', 'album': 'Album2', 'title': 'Title2'},
+        {'artist': 'Art3', 'album': 'Album3', 'title': 'Title3'},
+    ]
+    return JsonResponse({'playlist': sample_playlist})
+
+def get_current_listening(request):
+    # TODO: this need to be in a separated model 
     sp_oauth = create_sp_oauth()
     token_info = sp_oauth.get_cached_token()
     token = token_info['access_token']
@@ -60,17 +75,12 @@ def current_music(request):
     result = spotify.current_playback()['item']
     
     if not result:
-        return render(request,'current_music.html', context = {"Field": "Not listening"})
+        track = {}
     
-    return render(request,'current_music.html', context = {"Field": result['artists'][0]['name'] + ' - ' + result['name']})
-
-
-# AJAX Handling.
-def get_playlist_by_name(request):
-    playlist = request.GET.get('playlist', None)
-    sample_playlist = {
-        '1': {'artist': 'Art1', 'album': 'Album1', 'title': 'Title1'},
-        '2': {'artist': 'Art2', 'album': 'Album2', 'title': 'Title2'},
-        '3': {'artist': 'Art3', 'album': 'Album3', 'title': 'Title3'},
+    track = {
+        'album': result['album']['name'],
+        'artist': result['artists'][0]['name'],
+        'title': result['name'],
     }
-    return JsonResponse(sample_playlist)
+
+    return JsonResponse({'track': track })
