@@ -6,6 +6,65 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<!-- Bootstrap CSS -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
+
+		<script type="text/javascript">
+
+			function createCollapsingTrackCardHTML(parent_id, id, header_content, collapse_content) {
+				var heading_id = 'track_heading_' + id
+				var collapse_id = 'track_collapse_' + id
+				// TODO: ez szörnyen néz ki.
+				var heading_html = '<div class="card-header" role="tab" id="' + heading_id + '"><h6 class="mb-0"><a data-toggle="collapse" href="#' + collapse_id +
+					'" aria-expanded="true" aria-controls="' + collapse_id + '">' + header_content + '</a></h5></div>';
+				var collapse_html = '<div id="' + collapse_id + '" class="collapse" role="tabpanel" aria-labelledby="headingOne" data-parent="#' + parent_id + 
+					'"><div class="card-body">' + collapse_content + '</div></div>'
+
+				return '<p><div class="card bg-light">' + heading_html + collapse_html + '</div></p>';
+			}
+
+			function fillCards(data) {
+				// TODO: vagy JQuery vagy NE.
+				var table = $('#track_cards_div')
+
+				var card_header = 'Ez egy szám címe'
+				var card_collapse = 'Itt adatok jelennek meg a számról.' 
+
+				for (id in data) {
+				    table.append(createCollapsingTrackCardHTML('track_cards_div', id, card_header, card_collapse));
+				} 
+			}
+
+			function updateCurrentPlayling(track) {
+				document.getElementById("currently_playing_div").innerHTML = track['artist'] + ' - ' +  track['title']
+			}
+
+			function getPlaylist() {
+				fetch('http://127.0.0.1:8000/ajax/get_playlist_by_name/', {
+					method: 'get'
+				}).then(function(response) {
+					return response.json()
+				}).then(function(responseJSON) {
+					fillCards(responseJSON['playlist'])
+				}).catch(function(err) {
+					alert(err)
+				});
+			}
+
+			function getCurrentPlaying() {
+				fetch('http://127.0.0.1:8000/ajax/get_current_listening/', {
+					method: 'get'
+				}).then(function(response) {
+					return response.json()
+				}).then(function(responseJSON) {
+					updateCurrentPlayling(responseJSON['track'])
+				}).catch(function(err) {
+					alert(err)
+				});
+			}
+
+			getCurrentPlaying()
+			getPlaylist()
+
+		</script>
 	</head>
 	<body>
 		<!-- NavBar -->
@@ -46,31 +105,21 @@
 
 		<!-- Content -->
 		<div class="container">
-			<h1>Hello, world!</h1>
-			<p>Jelenleg ezt hallgatod: {{Field}} </p>
-
-			<h5>Ide jön majd a lejátszási lista az adatokkal...</h5>
-			<table class="table">
-				<thead>
-					<tr>
-						<th scope="col">#</th>
-						<th scope="col">Előadó</th>
-						<th scope="col">Album</th>
-						<th scope="col">Cím</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for track in data %}
-					<tr>
-						<th scope="row">{{ forloop.counter0 }}</th>
-						{% for attr in track %}
-							<td>{{ attr }}</td>
-						{% endfor %}
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-
+			<h1>Spotify - Wikidata összerendelés</h1>
+			<div class="card text-white bg-secondary mb-3">
+				<div class="card-header">Jelenleg ezt hallgatod</div>
+				<div class="card-body">
+					<h4 class="card-title" id="currently_playing_div">Primary card title</h4>
+					<p class="card-text">
+						Ide fog majd jönni az a tartalom, amit a Wikidata-tól sikerül összeszedni. Arra gondoltam már, hogy ennyi erővel még egy képet is ki lehetne tenni mert megvannak az albumborítók is. Majd ha lesz idő.
+					</p>
+					<button type="button" class="btn btn-light" onclick="getCurrentPlaying()">frissítés</button>
+				</div>
+			</div>
+			<hr>
+			<div id="track_cards_div" role="tablist">
+				<!-- Dynamic content goes here. -->
+			</div>
 		</div>
 
 		<!-- Optional -->
