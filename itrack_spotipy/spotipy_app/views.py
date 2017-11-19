@@ -10,7 +10,7 @@ from django.http import JsonResponse
 
 def create_sp_oauth():
     redirect_uri = 'http://localhost:8000/login'
-    spotify_scope = 'user-read-playback-state user-read-currently-playing'
+    spotify_scope = 'user-read-playback-state user-read-currently-playing playlist-read-private'
     
     with open('../../credentials.json', encoding='utf-8') as file:
         credentials = json.load(file)
@@ -23,6 +23,16 @@ def create_sp_oauth():
         scope=spotify_scope, cache_path=cache_path)
     
     return sp_oauth
+
+def get_spotify_client():
+    sp_oauth = create_sp_oauth()
+    token_info = sp_oauth.get_cached_token()
+    if token_info is None:
+        print('Token expired!!!')
+        return
+    token = token_info['access_token']
+
+    return spotipy.Spotify(auth=token)
 
 # Create your views here.
 
@@ -56,31 +66,43 @@ def current_music(request):
 
 
 # AJAX Handling.
-def get_playlist_by_name(request):
-    # playlist_name = request.GET.get('playlist', None)
-    sample_playlist = [
-        {'artist': 'Art1', 'album': 'Album1', 'title': 'Title1'},
-        {'artist': 'Art2', 'album': 'Album2', 'title': 'Title2'},
-        {'artist': 'Art3', 'album': 'Album3', 'title': 'Title3'},
-    ]
-    return JsonResponse({'playlist': sample_playlist})
+def get_user_playlists(request):
+    spotify = get_spotify_client()
+
+    result = spotify.current_user_playlists()
+    playlists = [{'name': item['name'], 'playlist_id': item['id'], 'owner_id': item['owner']['id']} for item in result['items']]
+
+    return JsonResponse({'playlists': playlists})
 
 def get_current_listening(request):
-    # TODO: this need to be in a separated model 
-    sp_oauth = create_sp_oauth()
-    token_info = sp_oauth.get_cached_token()
-    token = token_info['access_token']
-    
-    spotify = spotipy.Spotify(auth=token)
-    result = spotify.current_playback()['item']
-    
+    spotify = get_spotify_client()
+
+    result = spotify.current_playback()
+ 
     if not result:
         track = {}
-    
-    track = {
-        'album': result['album']['name'],
-        'artist': result['artists'][0]['name'],
-        'title': result['name'],
-    }
+    else:
+        track = {
+            'album': result['item']['album']['name'],
+            'artist': result['item']['artists'][0]['name'],
+            'title': result['item']['name'],
+        }
 
     return JsonResponse({'track': track })
+
+def get_playlist_by_id(request):
+    playlist_id = request.POST.get('playlist_id')
+    owner_id = request.POST.get('owner_id')
+    spotify = get_spotify_client()
+
+    result = spotify.user_playlist(user=owner_id, playlist_id=playlist_id)
+
+    tracklist = []
+    for track in result['tracks']['items']:
+        tracklist.append({
+            'name': track['track']['name'],
+            'album': track['track']['album']['name'],
+            'artists': [artist['name'] for artist in track['track']['artists']],
+        })
+
+    return JsonResponse({'playlist': tracklist})
