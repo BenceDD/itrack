@@ -12,7 +12,7 @@
 		<script src="{% static "view.js" %}" type="text/javascript"></script>
 		<script type="text/javascript">
 			var view = View() // this name 'view' referred in the createPlaylistCard method!!
-			view.updateCurrentPlayling()
+			view.updateSongCard()
 			view.updatePlaylistCards()
 		</script>
 	</head>
@@ -59,11 +59,16 @@
 			<div class="card text-white bg-secondary mb-3">
 				<div class="card-header">Jelenleg ezt hallgatod</div>
 				<div class="card-body">
-					<h4 class="card-title" id="currently_playing_div">Primary card title</h4>
-					<p class="card-text">
-						Ide fog majd jönni az a tartalom, amit a Wikidata-tól sikerül összeszedni. Arra gondoltam már, hogy ennyi erővel még egy képet is ki lehetne tenni mert megvannak az albumborítók is. Majd ha lesz idő.
-					</p>
-					<button type="button" class="btn btn-light" onclick="view.updateCurrentPlayling()">mit hallgatok most?</button>
+					<div class="media">
+						<div class="media-body">
+							<h4 class="card-title" id="currently_playing_div">A jelenleg hallgatott szám címe</h4>
+							<p class="card-text">
+								Ide fog majd jönni az a tartalom, amit a Wikidata-tól sikerül összeszedni. Arra gondoltam már, hogy ennyi erővel még egy képet is ki lehetne tenni mert megvannak az albumborítók is. Majd ha lesz idő.
+							</p>
+							<button type="button" class="btn btn-light" onclick="view.updateSongCard()">mit hallgatok most?</button>
+						</div>
+						<img id="album_cover" class="ml-3" src="https://lh3.googleusercontent.com/UrY7BAZ-XfXGpfkeWg0zCCeo-7ras4DCoRalC_WXXWTK9q5b0Iw7B0YQMsVxZaNB7DM=w300-rw" alt="Album cover">
+					</div>
 				</div>
 			</div>
 			<hr>

@@ -2,7 +2,8 @@ function View() {
 	var model = Model()
 
 	function updateSongCard(track) {
-		document.getElementById("currently_playing_div").innerHTML = track['artist'] + ' - ' +  track['title']
+		document.getElementById("currently_playing_div").innerHTML = track['artists'].join(', ') + ' - ' +  track['title']
+		document.getElementById('album_cover').src = track['image']
 	}
 
 	function playlistCardHeadingID(playlist_id) {
@@ -37,28 +38,33 @@ function View() {
 	}
 
 	function fillPlaylistWithTracklist(playlist_id, tracklist) {
-		function makeRow(no, title, artists, album) {
-			return '<tr><th scope="row">' + no + '</th><td>' + title + '</td><td>' + artists.join(', ')  + '</td><td>' + album + '</td></tr>'
+		function makeRow(no, title, artists, album, track_id) {
+			return '<tr onclick="view.updateSongCard(\'' + track_id + '\')"><th scope="row">' + no + '</th><td>' + title + '</td><td>' + 
+				artists.join(', ')  + '</td><td>' + album + '</td></tr>'
 		}
 
 		var artist_title = 'Előadó'
 		var album_title = 'Album'
 		var track_title = 'Cím'
 
-		var content = '<table class="table table-striped"><thead><tr><th scope="col">#</th><th scope="col">' + track_title + 
+		var content = '<table class="table table-hover"><thead><tr><th scope="col">#</th><th scope="col">' + track_title + 
 				'</th><th scope="col">' + artist_title + '</th><th scope="col">' + album_title + '</th></tr></thead><tbody>'
 		for (i in tracklist) 
-			content += makeRow(String(Number(i) + 1), tracklist[i]['title'], tracklist[i]['artists'], tracklist[i]['album'])
+			content += makeRow(String(Number(i) + 1), tracklist[i]['title'], tracklist[i]['artists'], tracklist[i]['album'], tracklist[i]['track_id'])
 		content += '</tbody></table>'
 
 		document.getElementById(playlistCardContentID(playlist_id)).innerHTML = content
 	}
 
 	return {
-		updateCurrentPlayling: function() {
-			model.getCurrentPlaying().then(function(result) {
-				updateSongCard(result['track'])
-			})
+		updateSongCard: function(track_id) {
+			if (track_id == null) {
+				model.getCurrentPlaying().then(function(track) {
+					updateSongCard(track)
+				})
+			} else {
+				updateSongCard(model.getTrackByID(track_id))
+			}
 		},
 		updatePlaylistCards: function() {
 			model.getUserPlaylist().then(function(playlists) {
@@ -70,6 +76,6 @@ function View() {
 			model.getPlaylistContentByID(playlist_id).then(function(tracklist) {
 				fillPlaylistWithTracklist(playlist_id, tracklist)
 			})
-		}	
+		}
 	}
 }
