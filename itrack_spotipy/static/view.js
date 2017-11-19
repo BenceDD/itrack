@@ -1,40 +1,11 @@
-function Controller() {
+function View() {
 	// model functions
-	function getCurrentPlaying() {
-		return new Promise(function(success, error) {
-			fetch('http://localhost:8000/ajax/get_current_listening/', {
-				method: 'get'
-			}).then(res=>res.json()).then(success).catch(error);
-		});
-	}
-
-	function getUserPlaylist() {
-        return new Promise(function(success, error) {
-            fetch('http://localhost:8000/ajax/get_user_playlists/', {
-				method: 'get'
-			}).then(res=>res.json()).then(success).catch(error);
-        });
-    }
-
-    function getPlaylistContentByID(owner_id, playlist_id) {
-    	return new Promise(function(success, error) {
-			var data = new FormData();
-			data.append('playlist_id', playlist_id)
-			data.append('owner_id', owner_id)
-			data.append('csrfmiddlewaretoken', jQuery("[name=csrfmiddlewaretoken]").val());
-			fetch("http://localhost:8000/ajax/get_playlist_by_id/", {
-			    method: 'POST',
-			    body: data,
-			    credentials: 'same-origin',
-			}).then(res=>res.json()).then(success).catch(error);
-		});
-	}
+	var model = Model()
 
 	// view functions
 	function updateSongCard(track) {
 		document.getElementById("currently_playing_div").innerHTML = track['artist'] + ' - ' +  track['title']
 	}
-
 
 	function updatePlaylistCards(playlists) {
 
@@ -73,15 +44,17 @@ function Controller() {
 
 	return {
 		updateCurrentPlayling: function() {
-			getCurrentPlaying().then(function(result) {
+			model.getCurrentPlaying().then(function(result) {
 				updateSongCard(result['track'])
 			})
 		},
 		updatePlaylistCards: function() {
-			getUserPlaylist().then(function(result) {
+			model.getUserPlaylist().then(function(result) {
 				return result['playlists']
 			}).then(updatePlaylistCards)
 		},
-		getPlaylistContentByID: getPlaylistContentByID // csak azért hogy működjön a gomb..
+		getPlaylistContentByID: model.getPlaylistContentByID // csak azért hogy működjön a gomb..
 	}
 }
+
+
