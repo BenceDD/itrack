@@ -1,45 +1,57 @@
 function View() {
-	// model functions
 	var model = Model()
 
-	// view functions
 	function updateSongCard(track) {
 		document.getElementById("currently_playing_div").innerHTML = track['artist'] + ' - ' +  track['title']
 	}
 
-	function updatePlaylistCards(playlists) {
+	function playlistCardHeadingID(playlist_id) {
+		return 'track_heading_' + playlist_id
+	}
 
-		function makePlaylistCardTable(playlist) {
-			// data is a list of name, artis and album
-			var artist_title = 'Előadó'
-			var album_title = 'Album'
-			var track_title = 'Cím'
-			//console.log(data)
-			var content = '<table class="table table-striped"> <thead> <tr> <th scope="col">#</th> <th scope="col">' + track_title + 
-				'</th> <th scope="col">' + artist_title + '</th> <th scope="col">' + album_title + '</th> </tr> </thead> <tbody> <tr> <th scope="row">1</th> <td>Mark</td> <td>Otto</td> <td>@mdo</td> </tr> <tr> <th scope="row">2</th> <td>Jacob</td> <td>Thornton</td> <td>@fat</td> </tr> <tr> <th scope="row">3</th> <td>Larry</td> <td>the Bird</td> <td>@twitter</td> </tr> </tbody></table>'
-			return content
-		}
+	function playlistCardCollapseID(playlist_id) {
+		return 'track_collapse_' + playlist_id
+	}
 
-		function createPlaylistCard(parent_id, id, header_content, collapse_content) {
-			var heading_id = 'track_heading_' + id
-			var collapse_id = 'track_collapse_' + id
+	function playlistCardContentID(playlist_id) {
+		return 'track_content_' + playlist_id 
+	}
+
+	function displayCards(user_playlists) {
+
+		function createPlaylistCard(parent_id, playlist_id, header_content, collapse_content) {
+			var collapse_id = playlistCardCollapseID(playlist_id)
 			// TODO: ez szörnyen néz ki.
-			var heading_html = '<div class="card-header" role="tab" id="' + heading_id + '"><h6 class="mb-0"><a data-toggle="collapse" href="#' + collapse_id +
+			var heading_html = '<div class="card-header" role="tab" id="' + playlistCardHeadingID(playlist_id) +
+				'"><h6 class="mb-0"><a data-toggle="collapse" onclick="view.fillPlaylistCardWithSongs(\'' + playlist_id + '\')" href="#' + collapse_id +
 				'" aria-expanded="true" aria-controls="' + collapse_id + '">' + header_content + '</a></h5></div>';
 			var collapse_html = '<div id="' + collapse_id + '" class="collapse" role="tabpanel" aria-labelledby="headingOne" data-parent="#' + parent_id + 
-				'"><div class="card-body">' + collapse_content + '</div></div>'
-
+				'"><div id="' + playlistCardContentID(playlist_id) + '" class="card-body">' + collapse_content + '</div></div>'
 			return '<p><div class="card bg-light">' + heading_html + collapse_html + '</div></p>';
 		}
+		
+		// TODO: vagy JQuery vagy NE.
+		var table = $('#track_cards_div')
+		for (i in user_playlists) 
+		    table.append(createPlaylistCard('track_cards_div', user_playlists[i]['playlist_id'], user_playlists[i]['name'], 'Betöltés...'));
+	}
 
-		return new Promise(function(success) {
-			// TODO: vagy JQuery vagy NE.
-			var table = $('#track_cards_div')
-			for (id in playlists) {
-			    table.append(createPlaylistCard('track_cards_div', id, playlists[id]['name'], 'Betöltés...'));
-			}
-			success()
-		});
+	function fillPlaylistWithTracklist(playlist_id, tracklist) {
+		function makeRow(no, title, artists, album) {
+			return '<tr><th scope="row">' + no + '</th><td>' + title + '</td><td>' + artists.join(', ')  + '</td><td>' + album + '</td></tr>'
+		}
+
+		var artist_title = 'Előadó'
+		var album_title = 'Album'
+		var track_title = 'Cím'
+
+		var content = '<table class="table table-striped"><thead><tr><th scope="col">#</th><th scope="col">' + track_title + 
+				'</th><th scope="col">' + artist_title + '</th><th scope="col">' + album_title + '</th></tr></thead><tbody>'
+		for (i in tracklist) 
+			content += makeRow(String(Number(i) + 1), tracklist[i]['title'], tracklist[i]['artists'], tracklist[i]['album'])
+		content += '</tbody></table>'
+
+		document.getElementById(playlistCardContentID(playlist_id)).innerHTML = content
 	}
 
 	return {
@@ -49,12 +61,15 @@ function View() {
 			})
 		},
 		updatePlaylistCards: function() {
-			model.getUserPlaylist().then(function(result) {
-				return result['playlists']
-			}).then(updatePlaylistCards)
+			model.getUserPlaylist().then(function(playlists) {
+				displayCards(playlists)
+			})
 		},
-		getPlaylistContentByID: model.getPlaylistContentByID // csak azért hogy működjön a gomb..
+		fillPlaylistCardWithSongs: function(playlist_id) {
+			// this name 'fillPlaylistCardWithSongs' referred in the createPlaylistCard method!!
+			model.getPlaylistContentByID(playlist_id).then(function(tracklist) {
+				fillPlaylistWithTracklist(playlist_id, tracklist)
+			})
+		}	
 	}
 }
-
-
