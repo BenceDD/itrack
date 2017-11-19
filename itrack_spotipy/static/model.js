@@ -8,7 +8,9 @@ function Model() {
 		return new Promise(function(success, error) {
 			fetch('http://localhost:8000/ajax/get_current_listening/', {
 				method: 'get'
-			}).then(res=>res.json()).then(success).catch(error);
+			}).then(res=>res.json()).then(function(result) {
+				return result['track']
+			}).then(success).catch(error);
 		});
 	}
 
@@ -61,5 +63,13 @@ function Model() {
 		getCurrentPlaying: getCurrentPlaying,
 		getUserPlaylist: getUserPlaylist,
 		getPlaylistContentByID: getPlaylistContentByID,
+		getTrackByID: function(track_id) {
+			for (list in savedPlaylists) {
+				for (track in savedPlaylists[list]) {
+					if (savedPlaylists[list][track]['track_id'] == track_id)
+						return savedPlaylists[list][track]
+				}
+			}
+		},
 	}
 }

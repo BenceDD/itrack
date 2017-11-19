@@ -77,15 +77,15 @@ def get_user_playlists(request):
 def get_current_listening(request):
     spotify = get_spotify_client()
 
-    result = spotify.current_playback()
- 
+    result = spotify.current_playback() 
     if not result:
         track = {}
     else:
         track = {
             'album': result['item']['album']['name'],
-            'artist': result['item']['artists'][0]['name'],
+            'artists': [artist['name'] for artist in result['item']['artists']],
             'title': result['item']['name'],
+            'image': result['item']['album']['images'][1]['url'],
         }
 
     return JsonResponse({'track': track })
@@ -100,9 +100,10 @@ def get_playlist_by_id(request):
     tracklist = []
     for track in result['tracks']['items']:
         tracklist.append({
+            'track_id': track['track']['id'],
             'title': track['track']['name'],
             'album': track['track']['album']['name'],
             'artists': [artist['name'] for artist in track['track']['artists']],
+            'image': track['track']['album']['images'][1]['url'],
         })
-
     return JsonResponse({'playlist': tracklist})
