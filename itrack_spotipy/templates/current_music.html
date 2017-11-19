@@ -11,7 +11,7 @@
 		<script src="{% static "model.js" %}" type="text/javascript"></script>
 		<script src="{% static "view.js" %}" type="text/javascript"></script>
 		<script type="text/javascript">
-			var view = View()
+			var view = View() // this name 'view' referred in the createPlaylistCard method!!
 			view.updateCurrentPlayling()
 			view.updatePlaylistCards()
 		</script>
@@ -67,9 +67,6 @@
 				</div>
 			</div>
 			<hr>
-
-			<button type="button" class="btn btn-light" onclick="view.getPlaylistContentByID()">teszt!</button>
-
 			<div id="track_cards_div" role="tablist">
 				<!-- Dynamic content goes here. -->
 			</div>

@@ -100,7 +100,7 @@ def get_playlist_by_id(request):
     tracklist = []
     for track in result['tracks']['items']:
         tracklist.append({
-            'name': track['track']['name'],
+            'title': track['track']['name'],
             'album': track['track']['album']['name'],
             'artists': [artist['name'] for artist in track['track']['artists']],
         })
