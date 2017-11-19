@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^login',views.login,name = 'login'),
     url(r'^current_music',views.current_music,name = 'current_music'),
     # AJAX handling
-    url(r'^ajax/get_playlist_by_name/$', views.get_playlist_by_name, name='get_playlist_by_name'),
-    url(r'^ajax/get_current_listening/$', views.get_current_listening, name='get_current_listening'),
+    url(r'^ajax/get_user_playlists/', views.get_user_playlists, name='get_user_playlists'),
+    url(r'^ajax/get_current_listening/', views.get_current_listening, name='get_current_listening'),
+    url(r'^ajax/get_playlist_by_id/$', views.get_playlist_by_id, name='get_playlist_by_id'),
 ] 
