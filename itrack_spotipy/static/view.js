@@ -1,9 +1,19 @@
 function View() {
 	var model = Model()
+	var default_album_cover = 'https://lh3.googleusercontent.com/UrY7BAZ-XfXGpfkeWg0zCCeo-7ras4DCoRalC_WXXWTK9q5b0Iw7B0YQMsVxZaNB7DM=w300-rw'
 
-	function updateSongCard(track) {
+	function updateSongCard(track, now_playlig) {
+		if (now_playlig)
+			document.getElementById("currently_playing_header").innerHTML = 'Jelenleg ezt hallgatod'
+		else
+			document.getElementById("currently_playing_header").innerHTML = 'Lejátszási listáról'
+
 		document.getElementById("currently_playing_div").innerHTML = track['artists'].join(', ') + ' - ' +  track['title']
-		document.getElementById('album_cover').src = track['image']
+		
+		var image_url = default_album_cover
+		if (track['image'] != null)
+			image_url = track['image']
+		document.getElementById('album_cover').src = image_url
 	}
 
 	function playlistCardHeadingID(playlist_id) {
@@ -60,10 +70,10 @@ function View() {
 		updateSongCard: function(track_id) {
 			if (track_id == null) {
 				model.getCurrentPlaying().then(function(track) {
-					updateSongCard(track)
+					updateSongCard(track, true)
 				})
 			} else {
-				updateSongCard(model.getTrackByID(track_id))
+				updateSongCard(model.getTrackByID(track_id), false)
 			}
 		},
 		updatePlaylistCards: function() {

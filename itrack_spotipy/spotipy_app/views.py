@@ -66,6 +66,22 @@ def current_music(request):
 
 
 # AJAX Handling.
+def get_data_from_track(track):
+    if track is None:
+        return {}
+
+    image = None
+    if len(track['album']['images']) > 1:
+        image = track['album']['images'][1]['url']
+
+    return {
+        'track_id': track['id'],
+        'album': track['album']['name'],
+        'artists': [artist['name'] for artist in track['artists']],
+        'title': track['name'],
+        'image': image,
+    }
+
 def get_user_playlists(request):
     spotify = get_spotify_client()
 
@@ -76,34 +92,14 @@ def get_user_playlists(request):
 
 def get_current_listening(request):
     spotify = get_spotify_client()
-
     result = spotify.current_playback() 
-    if not result:
-        track = {}
-    else:
-        track = {
-            'album': result['item']['album']['name'],
-            'artists': [artist['name'] for artist in result['item']['artists']],
-            'title': result['item']['name'],
-            'image': result['item']['album']['images'][1]['url'],
-        }
-
-    return JsonResponse({'track': track })
+    return JsonResponse({'track': get_data_from_track(result['item']) })
 
 def get_playlist_by_id(request):
     playlist_id = request.POST.get('playlist_id')
     owner_id = request.POST.get('owner_id')
+
     spotify = get_spotify_client()
-
     result = spotify.user_playlist(user=owner_id, playlist_id=playlist_id)
-
-    tracklist = []
-    for track in result['tracks']['items']:
-        tracklist.append({
-            'track_id': track['track']['id'],
-            'title': track['track']['name'],
-            'album': track['track']['album']['name'],
-            'artists': [artist['name'] for artist in track['track']['artists']],
-            'image': track['track']['album']['images'][1]['url'],
-        })
+    tracklist = [get_data_from_track(track['track']) for track in result['tracks']['items']]
     return JsonResponse({'playlist': tracklist})
