@@ -3,6 +3,9 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from wikidata.client import Client
 from wikidata.entity import EntityId
 
+import pprint
+import sys
+
 def wikidata_search_track(artist_name,artist_id,album_name,album_id,song_name,song_id):
     sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
 #    sparql.setQuery("""
@@ -94,11 +97,93 @@ def wikidata_wrap_results(results):
         wrapped_results.append(new_element)
     return wrapped_results;
 
+def wikidata_load_generic(attributes):
+    generic = {}
+    if len(attributes["labels"]) != 0:
+        generic["label"] = attributes["labels"]["en"]
+    if len(attributes["descriptions"]) != 0:
+        generic["description"] = attributes["descriptions"]["en"]
+    if len(attributes["sitelinks"]) != 0:
+        value = attributes["sitelinks"].get("enwiki")
+        if value is not None:
+            generic["wiki"] = value
+    return generic
+
+def wikidata_load_artist(attributes):
+    artist = wikidata_load_generic(attributes)
+    if len(attributes["claims"]) != 0:
+        artist["stuff"] = attributes["claims"]
+    return artist
+
+def wikidata_load_album(attributes):
+    album = wikidata_load_generic(attributes)
+    if len(attributes["claims"]) != 0:
+        album["stuff"] = attributes["claims"]
+    return album
+
+def wikidata_load_song(attributes):
+    song = wikidata_load_generic(attributes)
+    if len(attributes["claims"]) != 0:
+        song["stuff"] = attributes["claims"]
+    return song
+
+def wikidata_download_results(results):
+    downloaded_results = []
+    for result in results:
+        new_element = {
+            "artist" : wikidata_load_artist(result["artist"].attributes),
+            "album" : wikidata_load_album(result["album"].attributes),
+            "song" : wikidata_load_song(result["song"].attributes),
+        }
+        downloaded_results.append(new_element)
+    return downloaded_results;
+
+pp = pprint.PrettyPrinter(indent=4)
+
 results = wikidata_search_track("JVG","55mdlQp6zN8zdyIYB9DDQj","247365","2tShA8neDBPFY0Bc06qEpx","Tarkenee","3G9gUGRgM4lB2ebVPUcMKI")
-print(wikidata_wrap_results(wikidata_clean_results(results)))
+cleaned_results = wikidata_clean_results(results)
+wrapped_results = wikidata_wrap_results(cleaned_results)
+downloaded_results = wikidata_download_results(wrapped_results)
+
+pp.pprint(results)
+pp.pprint("\n\n\n")
+pp.pprint(cleaned_results)
+pp.pprint("\n\n\n")
+pp.pprint(wrapped_results)
+pp.pprint("\n\n\n")
+pp.pprint(downloaded_results)
+pp.pprint("\n\n\n")
+
+sys.stdout.flush()
 
 results = wikidata_search_track("Nightwish","2NPduAUeLVsfIauhRwuft1","Once","13BVicwsbPLIaMvr6ivH6B","Wish I Had an Angel","6H8weEvfzCtffIIcwDOK6m")
-print(wikidata_wrap_results(wikidata_clean_results(results)))
+cleaned_results = wikidata_clean_results(results)
+wrapped_results = wikidata_wrap_results(cleaned_results)
+downloaded_results = wikidata_download_results(wrapped_results)
+
+pp.pprint(results)
+pp.pprint("\n\n\n")
+pp.pprint(cleaned_results)
+pp.pprint("\n\n\n")
+pp.pprint(wrapped_results)
+pp.pprint("\n\n\n")
+pp.pprint(downloaded_results)
+pp.pprint("\n\n\n")
+
+sys.stdout.flush()
 
 results = wikidata_search_track("Anthrax","3JysSUOyfVs1UQ0UaESheP","Persistence Of Time","1FZJXIaK7UEOWUXXChiUqv","Got The Time","62rSF7anVnDAmc9Vnmb7cH")
-print(wikidata_wrap_results(wikidata_clean_results(results)))
+cleaned_results = wikidata_clean_results(results)
+wrapped_results = wikidata_wrap_results(cleaned_results)
+downloaded_results = wikidata_download_results(wrapped_results)
+
+pp.pprint(results)
+pp.pprint("\n\n\n")
+pp.pprint(cleaned_results)
+pp.pprint("\n\n\n")
+pp.pprint(wrapped_results)
+pp.pprint("\n\n\n")
+pp.pprint(downloaded_results)
+pp.pprint("\n\n\n")
+
+sys.stdout.flush()
