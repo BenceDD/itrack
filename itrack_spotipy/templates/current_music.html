@@ -12,17 +12,31 @@
         <div class="container">
             <h1>Spotify - Wikidata összerendelés</h1>
             <div class="card text-white bg-secondary mb-3">
-                <div id="currently_playing_header" class="card-header">Jelenleg ezt hallgatod</div>
+                <div id="song_card_header" class="card-header">Jelenleg ezt hallgatod</div>
                 <div class="card-body">
                     <div class="media">
                         <div class="media-body">
-                            <h4 class="card-title" id="currently_playing_div">A jelenleg hallgatott szám címe</h4>
-                            <p class="card-text">
+                            <h1 class="display-4" id="song_card_top_header">A jelenleg hallgatott szám címe</h1>
+                            <p class="card-text" id="song_card_top_content">
                                 Ide fog majd jönni az a tartalom, amit a Wikidata-tól sikerül összeszedni. Arra gondoltam már, hogy ennyi erővel még egy képet is ki lehetne tenni mert megvannak az albumborítók is. Majd ha lesz idő.
                             </p>
                             <button type="button" class="btn btn-light" onclick="view.updateSongCard()">mit hallgatok most?</button>
                         </div>
                         <img id="album_cover" class="ml-3" src="https://lh3.googleusercontent.com/UrY7BAZ-XfXGpfkeWg0zCCeo-7ras4DCoRalC_WXXWTK9q5b0Iw7B0YQMsVxZaNB7DM=w300-rw" alt="Album cover">
+                    </div>
+                </div>
+                <hr>
+                <div class="card-body">
+                    <p class="h4" id="song_card_first_footer_header">Album</p>
+                    <div id="song_card_first_footer_content">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                    </div>
+                </div>
+                <hr>
+                <div class="card-body">
+                    <p class="h4" id="song_card_second_footer_header">Előadó</p>
+                    <div id="song_card_second_footer_content">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                     </div>
                 </div>
             </div>

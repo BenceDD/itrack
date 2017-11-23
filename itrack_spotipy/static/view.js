@@ -3,7 +3,7 @@ function View() {
     var default_album_cover = 'https://lh3.googleusercontent.com/UrY7BAZ-XfXGpfkeWg0zCCeo-7ras4DCoRalC_WXXWTK9q5b0Iw7B0YQMsVxZaNB7DM=w300-rw'
 
     function setSongCardTitle(title) {
-        $("#currently_playing_header").html(title)
+        $("#song_card_header").html(title)
     }
 
     function updateSongCard(track, now_playlig) {
@@ -17,12 +17,20 @@ function View() {
             artists.push(track['artists'][i]['name'])
         }
 
-        $("#currently_playing_div").html(artists.join(', ') + ' - ' +  track['title'])
+        $("#song_card_top_header").html(artists.join(', ') + ' - ' +  track['title'])
 
         var image_url = default_album_cover
         if (track['image'] != null)
             image_url = track['image']
         document.getElementById('album_cover').src = image_url
+    }
+
+    function updateSongCardInfo(info) {
+        $("#song_card_top_content").html(info['song']['text'])
+        $("#song_card_first_footer_header").html(info['album']['label'])
+        $("#song_card_first_footer_content").html(info['album']['text'])
+        $("#song_card_second_footer_header").html(info['artist']['label'])
+        $("#song_card_second_footer_content").html(info['artist']['text'])
     }
 
     function playlistCardHeadingID(playlist_id) {
@@ -62,8 +70,12 @@ function View() {
             for (i in artists) 
                 artists_array.push(artists[i]['name'])
 
-            return '<tr onclick="view.updateSongCard(\'' + track_id + '\')"><th scope="row">' + no + '</th><td>' + title + '</td><td>' + 
-                artists_array.join(', ')  + '</td><td>' + album + '</td></tr>'
+            if (track_id)
+                return '<tr onclick="view.updateSongCard(\'' + track_id + '\')"><th scope="row">' + no + '</th><td>' + title + '</td><td>' + 
+                    artists_array.join(', ')  + '</td><td>' + album + '</td></tr>'
+            else
+                return '<tr"><th scope="row" class="text-muted">' + no + '</th><td class="text-muted">' + title + '</td><td class="text-muted">' + 
+                    artists_array.join(', ')  + '</td><td class="text-muted">' + album + '</td></tr>'
         }
 
         var artist_title = 'Előadó'
@@ -85,6 +97,11 @@ function View() {
             if (track_id == null) {
                 model.getCurrentPlaying().then(function(track) {
                     updateSongCard(track, true)
+                    return track
+                }).then(function(track) {
+                    return model.getSongInfo(track)
+                }).then(function(info) {
+                    updateSongCardInfo(info)
                 })
             } else {
                 var song = model.getTrackByID(track_id)
