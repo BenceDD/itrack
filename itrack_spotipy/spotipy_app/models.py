@@ -198,3 +198,11 @@ def wikidata_download_results(results):
         new_element["song"]["id"] = result["song"].id
         downloaded_results.append(new_element)
     return downloaded_results;
+
+def get_song_info(artist, artist_spotify_id, album, album_spotify_id, track, track_spotify_id):
+    results = wikidata_search_track(artist,artist_spotify_id,album,album_spotify_id,track,track_spotify_id)
+    cleaned_results = wikidata_clean_results(results)
+    wrapped_results = wikidata_wrap_results(cleaned_results)
+    downloaded_results = wikidata_download_results(wrapped_results)
+    sanitized_results = wikidata_sanitize_input(downloaded_results)
+    return sanitized_results;
