@@ -4,9 +4,119 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from wikidata.client import Client
 from wikidata.entity import EntityId
 
+import difflib
+
 import bleach
 
 # Create your models here.
+
+def wikidata_query_artist(artist_name,spotify_id):
+    sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
+    sparql.setQuery("""
+    SELECT ?artist ?artistSpotifyId
+    WHERE
+    {{
+      ?artist wdt:P31/wdt:P279* wd:Q2088357.
+      ?artist rdfs:label ?artistLabel.
+      FILTER(LANG(?artistLabel) = "en").
+      FILTER REGEX(?artistLabel,"{0}","i").
+      OPTIONAL
+      {{
+        ?artist wdt:P1902 ?artistSpotifyId.
+        FILTER REGEX(?artistSpotifyId,"{1}").
+      }}.
+    }}
+    ORDER BY DESC(?artistSpotifyId)
+    LIMIT 1
+    """.format(artist_name,spotify_id)
+    )
+    sparql.setReturnFormat(JSON)
+    return sparql.query().convert();
+
+def wikidata_serverside_filter(result,spotify_id_key,label_key,label):
+    if result["results"]["bindings"][0].get(spotify_id_key) is not None:
+        result["results"]["bindings"] = [result["results"]["bindings"][0]]
+    else:
+        maximum = ({},0.0)
+        found = False
+        for binding in result["results"]["bindings"]:
+            ratio = difflib.SequenceMatcher(None,label,binding[label_key]["value"]).ratio()
+            if ratio > maximum[1]:
+                maximum = (binding,ratio)
+                found = True
+        if not found:
+            result["results"]["bindings"] = []
+        else:
+            result["results"]["bindings"] = [maximum[0]]
+    return result;
+
+def wikidata_query_album(artist_id,album_name,spotify_id):
+    sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
+    sparql.setQuery("""
+    SELECT ?album ?albumLabel ?albumSpotifyId
+    WHERE
+    {{
+      ?album wdt:P31/wdt:P279* wd:Q482994.
+      ?album wdt:P175 wd:{0}.
+      ?album rdfs:label ?albumLabel.
+      FILTER(LANG(?albumLabel) = "en").
+      OPTIONAL
+      {{
+        ?album wdt:P2205 ?albumSpotifyId.
+        FILTER REGEX(?albumSpotifyId,"{1}").
+      }}.
+    }}
+    ORDER BY DESC(?albumSpotifyId)
+    """.format(artist_id,spotify_id)
+    )
+    sparql.setReturnFormat(JSON)
+    temp = sparql.query().convert();
+    return wikidata_serverside_filter(temp,"albumSpotifyId","albumLabel",album_name);
+
+
+def wikidata_query_song(artist_id,song_name,spotify_id):
+    sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
+    sparql.setQuery("""
+    SELECT ?song ?songLabel ?songSpotifyId
+    WHERE
+    {{
+      ?song wdt:P31/wdt:P279* wd:Q2188189.
+      ?song wdt:P175 wd:{0}.
+      ?song rdfs:label ?songLabel.
+      FILTER(LANG(?songLabel) = "en").
+      OPTIONAL
+      {{
+        ?song wdt:P2207 ?songSpotifyId.
+        FILTER REGEX(?songSpotifyId,"{1}").
+      }}.
+    }}
+    ORDER BY DESC(?songSpotifyId)
+    """.format(artist_id,spotify_id)
+    )
+    sparql.setReturnFormat(JSON)
+    temp = sparql.query().convert();
+    return wikidata_serverside_filter(temp,"songSpotifyId","songLabel",song_name);
+
+
+def wikidata_merge_results(artist_res,album_res,song_res):
+    merged_data = {
+        "results" : {
+            "bindings" : [
+                {}
+            ]
+        }
+    }
+    
+    for key,value in artist_res["results"]["bindings"][0].items():
+        merged_data["results"]["bindings"][0][key] = value
+    
+    for key,value in album_res["results"]["bindings"][0].items():
+        merged_data["results"]["bindings"][0][key] = value
+    
+    for key,value in song_res["results"]["bindings"][0].items():
+        merged_data["results"]["bindings"][0][key] = value
+    
+    return merged_data;
 
 def wikidata_sanitize_input(input_list):
     sanitized_list = []
@@ -19,7 +129,7 @@ def wikidata_sanitize_input(input_list):
             sanitized_element[entity] = sanitized_data
         sanitized_list.append(sanitized_element)
     return sanitized_list;
-
+'''
 def wikidata_search_track(artist_name,artist_id,album_name,album_id,song_name,song_id):
     sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
 #    sparql.setQuery("""
@@ -67,37 +177,35 @@ def wikidata_search_track(artist_name,artist_id,album_name,album_id,song_name,so
     )
     sparql.setReturnFormat(JSON)
     return sparql.query().convert();
+'''
+
+def wikidata_search_track(artist_name,artist_id,album_name,album_id,song_name,song_id):
+    artist_result = wikidata_query_artist(artist_name,artist_id)
+    cleaned_result = wikidata_clean_result(artist_result["results"]["bindings"][0],"artist","artistSpotifyId")
+    album_result = wikidata_query_album(cleaned_result["wikidata_id"],album_name,album_id)
+    song_result = wikidata_query_song(cleaned_result["wikidata_id"],song_name,song_id)
+    merged_result = wikidata_merge_results(artist_result,album_result,song_result)
+    return merged_result;
+
+def wikidata_clean_result(result,wikidata_key,spotify_key):
+    cleaned_result = {
+        "wikidata_id":result[wikidata_key]["value"].split("/")[-1],
+    }
+    if (result.get(spotify_key) is not None):
+        cleaned_result["spotify_id"] = result[spotify_key]["value"]
+    else:
+        cleaned_result["spotify_id"] = None
+    return cleaned_result;
 
 def wikidata_clean_results(results):
-    decoded_result = []
+    cleaned_results = []
     for result in results["results"]["bindings"]:
         new_element = {}
-        new_element["artist"] = {
-            "wikidata_id":result["artist"]["value"].split("/")[-1],
-        }
-        if (result.get("artistSpotifyId") is not None):
-            new_element["artist"]["spotify_id"] = result["artistSpotifyId"]["value"]
-        else:
-            new_element["artist"]["spotify_id"] = None
-        
-        new_element["album"] = {
-            "wikidata_id":result["album"]["value"].split("/")[-1],
-        }
-        if (result.get("albumSpotifyId") is not None):
-            new_element["album"]["spotify_id"] = result["albumSpotifyId"]["value"]
-        else:
-            new_element["album"]["spotify_id"] = None
-        
-        new_element["song"] = {
-            "wikidata_id":result["song"]["value"].split("/")[-1],
-        }
-        if (result.get("songSpotifyId") is not None):
-            new_element["song"]["spotify_id"] = result["songSpotifyId"]["value"]
-        else:
-            new_element["song"]["spotify_id"] = None
-        
-        decoded_result.append(new_element)
-    return decoded_result;
+        new_element["artist"] = wikidata_clean_result(result,"artist","artistSpotifyId")
+        new_element["album"] = wikidata_clean_result(result,"album","albumSpotifyId")
+        new_element["song"] = wikidata_clean_result(result,"song","songSpotifyId")
+        cleaned_results.append(new_element)
+    return cleaned_results;
 
 def wikidata_wrap_results(results):
     wrapped_results = []
