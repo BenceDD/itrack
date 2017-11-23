@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from spotipy_app.models import get_song_info as wiki_song_info
 # Ez nem view, ezt ki kell tenni máshová!
 
-def create_sp_oauth():
+def spotify_create_oauth():
     redirect_uri = 'http://localhost:8000/login'
     spotify_scope = 'user-read-playback-state user-read-currently-playing playlist-read-private'
     
@@ -24,46 +24,56 @@ def create_sp_oauth():
     
     return sp_oauth
 
+def spotify_get_and_refresh_token(sp_oauth,prev_token):
+    #TODO: Majd itt kell megvalósítani azt, hogy a requestből szedjük ki a
+    #tokent!
+    return sp_oauth.get_cached_token();
+
 def get_spotify_client():
-    sp_oauth = create_sp_oauth()
-    token_info = sp_oauth.get_cached_token()
+    sp_oauth = spotify_create_oauth()
+    token_info = spotify_get_and_refresh_token(sp_oauth,None) #TODO: None helyett itt majd a
+                                                              #      korábbi tokent kell továbbítani.
     if token_info is None:
-        print('Token expired!!!')
+        print('Token expired!!!') #TODO: Ide ilyenkor már elvileg csak akkor kéne ráfutnunk,
+                                  #      ha mindent megírtunk, ha nem sikerül refreshelni.
         return
     token = token_info['access_token']
 
     return spotipy.Spotify(auth=token)
 
-# Create your views here.
-
-def index(request):
-    return render(request,'index.html')
+def current_music(request):
+    sp_oauth = spotify_create_oauth()
+    token_info = spotify_get_and_refresh_token(sp_oauth,None) #TODO: None helyett itt majd a
+                                                              #      korábbi tokent kell továbbítani.
+    
+    if token_info is None:
+        return redirect("/redirect_to_spotify")
+    
+    return render(request,'current_music.html')
 
 def redirect_to_spotify(request):
-    sp_oauth = create_sp_oauth()
-    token_info = sp_oauth.get_cached_token()
+    sp_oauth = spotify_create_oauth()
+    token_info = spotify_get_and_refresh_token(sp_oauth,None) #TODO: None helyett itt majd a
+                                                              #      korábbi tokent kell továbbítani.
     
-    if not token_info:
+    if token_info is None:
         auth_url = sp_oauth.get_authorize_url()
         return redirect(auth_url)
     
     return redirect("/login")
 
 def login(request):
-    sp_oauth = create_sp_oauth()
-    token_info = sp_oauth.get_cached_token()
+    sp_oauth = spotify_create_oauth()
+    token_info = spotify_get_and_refresh_token(sp_oauth,None) #TODO: None helyett itt majd a
+                                                              #      korábbi tokent kell továbbítani.
     
-    if not token_info:
+    if token_info is None:
         code = sp_oauth.parse_response_code(request.get_full_path())
         token_info = sp_oauth.get_access_token(code)
     
     token = token_info['access_token']
     
-    return redirect("/current_music")
-
-def current_music(request):
-    return render(request,'current_music.html')
-
+    return redirect("/")
 
 # AJAX Handling.
 def get_data_from_track(track):
