@@ -12,4 +12,5 @@ urlpatterns = [
     url(r'^ajax/get_user_playlists/', views.get_user_playlists, name='get_user_playlists'),
     url(r'^ajax/get_current_listening/', views.get_current_listening, name='get_current_listening'),
     url(r'^ajax/get_playlist_by_id/$', views.get_playlist_by_id, name='get_playlist_by_id'),
+    url(r'^ajax/get_song_info/$', views.get_song_info, name='get_song_info'),
 ] 

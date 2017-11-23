@@ -2,13 +2,22 @@ function View() {
     var model = Model()
     var default_album_cover = 'https://lh3.googleusercontent.com/UrY7BAZ-XfXGpfkeWg0zCCeo-7ras4DCoRalC_WXXWTK9q5b0Iw7B0YQMsVxZaNB7DM=w300-rw'
 
+    function setSongCardTitle(title) {
+        $("#currently_playing_header").html(title)
+    }
+
     function updateSongCard(track, now_playlig) {
         if (now_playlig)
-            document.getElementById("currently_playing_header").innerHTML = 'Jelenleg ezt hallgatod'
+            setSongCardTitle('Jelenleg ezt hallgatod')
         else
-            document.getElementById("currently_playing_header").innerHTML = 'Lejátszási listáról'
+            setSongCardTitle('Lejátszási listáról')
 
-        document.getElementById("currently_playing_div").innerHTML = track['artists'].join(', ') + ' - ' +  track['title']
+        artists = []
+        for (i in track['artists']) {
+            artists.push(track['artists'][i]['name'])
+        }
+
+        $("#currently_playing_div").html(artists.join(', ') + ' - ' +  track['title'])
 
         var image_url = default_album_cover
         if (track['image'] != null)
@@ -49,8 +58,12 @@ function View() {
 
     function fillPlaylistWithTracklist(playlist_id, tracklist) {
         function makeRow(no, title, artists, album, track_id) {
+            artists_array = []
+            for (i in artists) 
+                artists_array.push(artists[i]['name'])
+
             return '<tr onclick="view.updateSongCard(\'' + track_id + '\')"><th scope="row">' + no + '</th><td>' + title + '</td><td>' + 
-                artists.join(', ')  + '</td><td>' + album + '</td></tr>'
+                artists_array.join(', ')  + '</td><td>' + album + '</td></tr>'
         }
 
         var artist_title = 'Előadó'
@@ -68,12 +81,14 @@ function View() {
 
     return {
         updateSongCard: function(track_id) {
+            setSongCardTitle('Betöltés...')
             if (track_id == null) {
                 model.getCurrentPlaying().then(function(track) {
                     updateSongCard(track, true)
                 })
             } else {
-                updateSongCard(model.getTrackByID(track_id), false)
+                var song = model.getTrackByID(track_id)
+                updateSongCard(song, false)
             }
         },
         updatePlaylistCards: function() {

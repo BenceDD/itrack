@@ -1,4 +1,3 @@
-
 import json
 import spotipy
 from spotipy import oauth2
@@ -6,6 +5,7 @@ from spotipy import oauth2
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 
+from spotipy_app.models import get_song_info as wiki_song_info
 # Ez nem view, ezt ki kell tenni máshová!
 
 def create_sp_oauth():
@@ -77,23 +77,23 @@ def get_data_from_track(track):
     return {
         'track_id': track['id'],
         'album': track['album']['name'],
-        'artists': [artist['name'] for artist in track['artists']],
+        'album_id': track['album']['id'],
+        'artists': [{'name': artist['name'], 'id': artist['id']} for artist in track['artists']],
         'title': track['name'],
         'image': image,
     }
 
 def get_user_playlists(request):
     spotify = get_spotify_client()
-
     result = spotify.current_user_playlists()
     playlists = [{'name': item['name'], 'playlist_id': item['id'], 'owner_id': item['owner']['id']} for item in result['items']]
-
     return JsonResponse({'playlists': playlists})
 
 def get_current_listening(request):
     spotify = get_spotify_client()
-    result = spotify.current_playback() 
-    return JsonResponse({'track': get_data_from_track(result['item']) })
+    result = spotify.current_playback()
+    track = get_data_from_track(result['item'])    
+    return JsonResponse({'track': track })
 
 def get_playlist_by_id(request):
     playlist_id = request.POST.get('playlist_id')
@@ -103,3 +103,7 @@ def get_playlist_by_id(request):
     result = spotify.user_playlist(user=owner_id, playlist_id=playlist_id)
     tracklist = [get_data_from_track(track['track']) for track in result['tracks']['items']]
     return JsonResponse({'playlist': tracklist})
+
+def get_song_info(request):
+    query = request.POST.get('query')
+    # TODO!!
