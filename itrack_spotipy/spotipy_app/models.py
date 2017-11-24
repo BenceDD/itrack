@@ -222,9 +222,13 @@ def wikidata_wrap_results(results):
 def wikidata_load_generic(attributes):
     generic = {}
     if len(attributes["labels"]) != 0:
-        generic["label"] = attributes["labels"]["en"]["value"]
+        en_label = attributes["labels"].get("en")
+        if en_label is not None:
+            generic["label"] = en_label["value"]
     if len(attributes["descriptions"]) != 0:
-        generic["description"] = attributes["descriptions"]["en"]["value"]
+        en_description = attributes["descriptions"].get("en")
+        if en_description is not None:
+            generic["description"] = en_description["value"]
     if len(attributes["sitelinks"]) != 0:
         value = attributes["sitelinks"].get("enwiki")
         if value is not None:
@@ -232,16 +236,28 @@ def wikidata_load_generic(attributes):
     return generic
 
 def wikidata_stringify_entity_list(client,object_list):
-    genre_string = ""
+    entity_string = ""
     i = 0
     for obj in object_list:
         entity = client.get(EntityId(obj["mainsnak"]["datavalue"]["value"]["id"]),True)
         if len(entity.attributes["labels"]) != 0:
-            genre_string += entity.attributes["labels"]["en"]["value"]
-            if i < len(object_list) - 1:
-                genre_string += ", "
-            i = i+1
-    return genre_string
+            en_label = entity.attributes["labels"].get("en")
+            if en_label is not None:
+                entity_string += en_label["value"]
+                if i < len(object_list) - 1:
+                    entity_string += ", "
+                i = i+1
+    return entity_string
+
+def wikidata_stringify_date_list(date_list):
+    date_string = ""
+    i = 0
+    for date in date_list:
+        date_string += date["mainsnak"]["datavalue"]["value"]["time"]
+        if i < len(date_list) - 1:
+            date_string += ", "
+        i = i+1
+    return date_string
 
 def wikidata_load_artist(attributes):
     artist = wikidata_load_generic(attributes)
@@ -256,6 +272,9 @@ def wikidata_load_artist(attributes):
         if award_list is not None:
             award_string = wikidata_stringify_entity_list(client,award_list)
             artist["awards"] = award_string;
+        inception_list = attributes["claims"].get("P571")
+        if inception_list is not None:
+            artist["inception"] = wikidata_stringify_date_list(inception_list)
     return artist
 
 def wikidata_load_album(attributes):
@@ -271,6 +290,9 @@ def wikidata_load_album(attributes):
         if producer_list is not None:
             producer_string = wikidata_stringify_entity_list(client,producer_list)
             album["producer"] = producer_string;
+        release_date_list = attributes["claims"].get("P577")
+        if release_date_list is not None:
+            album["release date"] = wikidata_stringify_date_list(release_date_list)
             
     return album
 
@@ -291,6 +313,9 @@ def wikidata_load_song(attributes):
         if lyrics_by_list is not None:
             lyrics_by_string = wikidata_stringify_entity_list(client,lyrics_by_list)
             song["lyrics_by"] = lyrics_by_string;
+        release_date_list = attributes["claims"].get("P577")
+        if release_date_list is not None:
+            song["release date"] = wikidata_stringify_date_list(release_date_list)
     return song
 
 def wikidata_download_results(results):
