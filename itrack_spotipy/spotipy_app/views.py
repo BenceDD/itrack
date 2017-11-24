@@ -7,7 +7,7 @@ from spotipy import oauth2
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 
-from spotipy_app.models import get_song_info as wiki_song_info
+from spotipy_app.models import WikiDataWrapper
 # Ez nem view, ezt ki kell tenni máshová!
 
 def spotify_create_oauth():
@@ -119,8 +119,10 @@ def get_playlist_by_id(request):
 def get_song_info(request):
     
     track = json.loads(request.POST.get('track'))
+    print(track)
+    wiki_wapper = WikiDataWrapper()
     
-    info = wiki_song_info(artist=track['artists'][0]['name'], artist_spotify_id=track['artists'][0]['id'],
+    info = wiki_wapper.get_song_info(artist=track['artists'][0]['name'], artist_spotify_id=track['artists'][0]['id'],
         album=track['album'], album_spotify_id=track['album_id'], track=track['title'], track_spotify_id=track['album'])[0]
 
     if info['album']['wiki']:
