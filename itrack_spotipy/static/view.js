@@ -104,8 +104,11 @@ function View() {
                     updateSongCardInfo(info)
                 })
             } else {
-                var song = model.getTrackByID(track_id)
-                updateSongCard(song, false)
+                var track = model.getTrackByID(track_id)
+                updateSongCard(track, false)
+                model.getSongInfo(track).then(function(info) {
+                    updateSongCardInfo(info)
+                })
             }
         },
         updatePlaylistCards: function() {
