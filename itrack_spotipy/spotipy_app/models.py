@@ -152,13 +152,11 @@ class WikiDataWrapper:
         for input_element in input_list:
             sanitized_element = {}
             for entity,data in input_element.items():
+                sanitized_data = {}
                 if data is not None:
-                    sanitized_data = {}
                     for key, value in data.items():
                         sanitized_data[key] = bleach.clean(value)
-                    sanitized_element[entity] = sanitized_data
-                else:
-                    sanitized_element[entity] = None
+                sanitized_element[entity] = sanitized_data
             sanitized_list.append(sanitized_element)
         return sanitized_list;
 
