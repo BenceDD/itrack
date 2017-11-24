@@ -11,11 +11,30 @@ import bleach
 
 class WikiDataWrapper:
 
-    artist_query_string = """
+    artist_band_query_string = """
         SELECT ?artist ?artistSpotifyId
         WHERE
         {{
           ?artist wdt:P31/wdt:P279* wd:Q2088357.
+          ?artist rdfs:label ?artistLabel.
+          FILTER(LANG(?artistLabel) = "en").
+          FILTER REGEX(?artistLabel,"{0}","i").
+          OPTIONAL
+          {{
+            ?artist wdt:P1902 ?artistSpotifyId.
+            FILTER REGEX(?artistSpotifyId,"{1}").
+          }}.
+        }}
+        ORDER BY DESC(?artistSpotifyId)
+        LIMIT 1
+    """
+    
+    artist_human_query_string = """
+        SELECT ?artist ?artistSpotifyId
+        WHERE
+        {{
+          ?artist wdt:P31 wd:Q5.
+          ?artist wdt:P358 ?discography.
           ?artist rdfs:label ?artistLabel.
           FILTER(LANG(?artistLabel) = "en").
           FILTER REGEX(?artistLabel,"{0}","i").
@@ -63,11 +82,23 @@ class WikiDataWrapper:
         ORDER BY DESC(?songSpotifyId)
     """
 
-    def query_artist(self, artist_name, spotify_id):
+    def query_artist_band(self, artist_name, spotify_id):
         sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
-        sparql.setQuery(self.artist_query_string.format(artist_name, spotify_id))
+        sparql.setQuery(self.artist_band_query_string.format(artist_name, spotify_id))
         sparql.setReturnFormat(JSON)
         return sparql.query().convert()["results"]
+	
+    def query_artist_human(self, artist_name, spotify_id):
+        sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
+        sparql.setQuery(self.artist_human_query_string.format(artist_name, spotify_id))
+        sparql.setReturnFormat(JSON)
+        return sparql.query().convert()["results"]
+
+    def query_artist(self, artist_name, spotify_id):
+        result = self.query_artist_band(artist_name,spotify_id)
+        if len(result["bindings"]) == 0:
+            result = self.query_artist_human(artist_name,spotify_id)
+        return result;
 
     def query_album(self, artist_id, album_name, spotify_id):
         sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
@@ -84,6 +115,8 @@ class WikiDataWrapper:
         return self.serverside_filter(temp, "songSpotifyId", "songLabel", song_name);
 
     def serverside_filter(self, result, spotify_id_key, label_key, label):
+        if len(result["bindings"]) == 0:
+            return result;
         if result["bindings"][0].get(spotify_id_key) is not None:
             result["bindings"] = [result["bindings"][0]]
         else:
@@ -102,9 +135,12 @@ class WikiDataWrapper:
 
     def merge_results(self, artist_res, album_res, song_res):
         bindings = {}
-        bindings.update(artist_res["bindings"][0])
-        bindings.update(album_res["bindings"][0])
-        bindings.update(song_res["bindings"][0])
+        if len(artist_res["bindings"]) > 0:
+            bindings.update(artist_res["bindings"][0])
+        if len(album_res["bindings"]) > 0:
+            bindings.update(album_res["bindings"][0])
+        if len(song_res["bindings"]) > 0:
+            bindings.update(song_res["bindings"][0])
         return {
             "bindings" : [
                 bindings,
@@ -125,15 +161,21 @@ class WikiDataWrapper:
 
     def search_track(self, artist_name, artist_id, album_name, album_id, song_name, song_id):
         artist_result = self.query_artist(artist_name,artist_id)
-        cleaned_result = self.clean_result(artist_result["bindings"][0], "artist", "artistSpotifyId")
-        album_result = self.query_album(cleaned_result["wikidata_id"], album_name, album_id)
-        song_result = self.query_song(cleaned_result["wikidata_id"], song_name, song_id)
+        album_result = {"bindings" : []}
+        song_result = {"bindings" : []}
+        if len(artist_result["bindings"]) > 0:
+            cleaned_result = self.clean_result(artist_result["bindings"][0], "artist", "artistSpotifyId")
+            album_result = self.query_album(cleaned_result["wikidata_id"], album_name, album_id)
+            song_result = self.query_song(cleaned_result["wikidata_id"], song_name, song_id)
         merged_result = self.merge_results(artist_result, album_result, song_result)
         return merged_result;
 
     def clean_result(self, result, wikidata_key, spotify_key):
+        wikidata_result = result.get(wikidata_key)
+        if wikidata_result is None:
+            return None;
         cleaned_result = {
-            "wikidata_id":result[wikidata_key]["value"].split("/")[-1],
+            "wikidata_id":wikidata_result["value"].split("/")[-1],
         }
         if (result.get(spotify_key) is not None):
             cleaned_result["spotify_id"] = result[spotify_key]["value"]
@@ -155,11 +197,22 @@ class WikiDataWrapper:
         wrapped_results = []
         client = Client()
         for result in results:
-            new_element = {
-                "artist" : client.get(EntityId(result["artist"]["wikidata_id"]), True),
-                "album" : client.get(EntityId(result["album"]["wikidata_id"]), True),
-                "song" : client.get(EntityId(result["song"]["wikidata_id"]), True),
-            }
+            artist_data = result.get("artist")
+            album_data = result.get("album")
+            song_data = result.get("song")
+            new_element = {}
+            if artist_data is not None:
+                new_element["artist"] = client.get(EntityId(artist_data["wikidata_id"]), True)
+            else:
+                new_element["artist"] = None
+            if album_data is not None:
+                new_element["album"] = client.get(EntityId(album_data["wikidata_id"]), True)
+            else:
+                new_element["album"] = None
+            if song_data is not None:
+                new_element["song"] = client.get(EntityId(song_data["wikidata_id"]), True)
+            else:
+                new_element["song"] = None
             wrapped_results.append(new_element)
         return wrapped_results;
 
@@ -265,14 +318,22 @@ class WikiDataWrapper:
     def wikidata_download_results(self, results):
         downloaded_results = []
         for result in results:
-            new_element = {
-                "artist" : self.load_artist(result["artist"].attributes),
-                "album" : self.load_album(result["album"].attributes),
-                "song" : self.load_song(result["song"].attributes),
-            }
-            new_element["artist"]["id"] = result["artist"].id
-            new_element["album"]["id"] = result["album"].id
-            new_element["song"]["id"] = result["song"].id
+            new_element = {}
+            if result["artist"] is not None:
+                new_element["artist"] = self.load_artist(result["artist"].attributes)
+                new_element["artist"]["id"] = result["artist"].id
+            else:
+                new_element["artist"] = None
+            if result["album"] is not None:
+                new_element["album"] = self.load_album(result["album"].attributes)
+                new_element["album"]["id"] = result["album"].id
+            else:
+                new_element["album"] = None
+            if result["song"] is not None:
+                new_element["song"] = self.load_song(result["song"].attributes)
+                new_element["song"]["id"] = result["song"].id
+            else:
+                new_element["song"] = None
             downloaded_results.append(new_element)
         return downloaded_results;
 
