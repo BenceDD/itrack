@@ -25,12 +25,20 @@ function View() {
         document.getElementById('album_cover').src = image_url
     }
 
-    function updateSongCardInfo(info) {
+    function updateSongCardInfoWithContent(info) {
         $("#song_card_top_content").html(info['song']['text'])
         $("#song_card_first_footer_header").html(info['album']['label'])
         $("#song_card_first_footer_content").html(info['album']['text'])
         $("#song_card_second_footer_header").html(info['artist']['label'])
         $("#song_card_second_footer_content").html(info['artist']['text'])
+    }
+
+    function updateSongCardInfoWithMessage(msg) {
+        $("#song_card_top_content").html(msg)
+        $("#song_card_first_footer_header").html(msg)
+        $("#song_card_first_footer_content").html(msg)
+        $("#song_card_second_footer_header").html(msg)
+        $("#song_card_second_footer_content").html(msg)
     }
 
     function playlistCardHeadingID(playlist_id) {
@@ -101,25 +109,33 @@ function View() {
                 }).then(function(track) {
                     return model.getSongInfo(track)
                 }).then(function(info) {
-                    updateSongCardInfo(info)
+                    updateSongCardInfoWithContent(info)
+                }).catch(function(){
+                    alert('Nem tudom letölteni a wikidata adatokat!')
                 })
             } else {
                 var track = model.getTrackByID(track_id)
                 updateSongCard(track, false)
                 model.getSongInfo(track).then(function(info) {
                     updateSongCardInfo(info)
+                }).catch(function(){
+                    alert('Nem tudom letölteni a wikidata adatokat!')
                 })
             }
         },
         updatePlaylistCards: function() {
             model.getUserPlaylist().then(function(playlists) {
                 displayCards(playlists)
+            }).catch(function(){
+                alert('Nem tudom frissíteni a playlisteket!')
             })
         },
         fillPlaylistCardWithSongs: function(playlist_id) {
             // this name 'fillPlaylistCardWithSongs' referred in the createPlaylistCard method!!
             model.getPlaylistContentByID(playlist_id).then(function(tracklist) {
                 fillPlaylistWithTracklist(playlist_id, tracklist)
+            }).catch(function(){
+                alert('Nem tudom feltölteni adatokkal a playlisteket!')
             })
         }
     }
