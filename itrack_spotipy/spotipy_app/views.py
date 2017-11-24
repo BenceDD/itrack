@@ -124,12 +124,12 @@ def get_song_info(request):
     
     info = wiki_wapper.get_song_info(artist=track['artists'][0]['name'], artist_spotify_id=track['artists'][0]['id'],
         album=track['album'], album_spotify_id=track['album_id'], track=track['title'], track_spotify_id=track['album'])[0]
-
-    if info['album'] and info['album']['wiki']:
+    print(info)
+    if 'album' in info and 'wiki' in info['album']:
         info['album']['text'] = BeautifulSoup(requests.get(info['album']['wiki']).text,"html.parser").findAll('p')[0].text
-    if info['artist'] and info['artist']['wiki']:
+    if 'artist' in info and 'wiki' in info['artist']:
         info['artist']['text'] = BeautifulSoup(requests.get(info['artist']['wiki']).text,"html.parser").findAll('p')[0].text
-    if info['song'] and info['song']['wiki']:
+    if 'song' in info and 'wiki' in info['song']:
         info['song']['text'] = BeautifulSoup(requests.get(info['song']['wiki']).text,"html.parser").findAll('p')[0].text
 
     return JsonResponse({'info': info})
