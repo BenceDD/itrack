@@ -71,7 +71,7 @@ function Model() {
             }).then(res=>res.json()).then(function(info) {
                 //console.log(info)
                 success(info['info'])
-            })
+            }).catch(error)
         })
     }
 
