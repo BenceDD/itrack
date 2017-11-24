@@ -90,6 +90,22 @@ print("\n\n\n")
 
 sys.stdout.flush()
 
+results = models.wikidata_search_track("The All-American Rejects","3vAaWhdBR38Q02ohXqaNHT","When The World Comes Down","5doKZJ05r4UbAp9rmpDRDD","Real World","3RCCivI7aQPikuZjfSvyeY")
+cleaned_results = models.wikidata_clean_results(results)
+wrapped_results = models.wikidata_wrap_results(cleaned_results)
+downloaded_results = models.wikidata_download_results(wrapped_results)
+
+pp.pprint(results)
+print("\n\n\n")
+pp.pprint(cleaned_results)
+print("\n\n\n")
+pp.pprint(wrapped_results)
+print("\n\n\n")
+pp.pprint(downloaded_results)
+print("\n\n\n")
+
+sys.stdout.flush()
+
 artist_result = models.wikidata_query_artist("JVG","55mdlQp6zN8zdyIYB9DDQj")
 cleaned_result = models.wikidata_clean_result(artist_result["results"]["bindings"][0],"artist","artistSpotifyId")
 pp.pprint(artist_result)
