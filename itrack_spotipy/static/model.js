@@ -11,7 +11,7 @@ function Model() {
             }).then(res=>res.json()).then(function(result) {
                 return result['track']
             }).then(success).catch(error);
-        });
+        })
     }
 
     function getUserPlaylist() {
@@ -26,7 +26,7 @@ function Model() {
                 userPlaylist = result['playlists']
                 return userPlaylist
             }).then(success).catch(error);
-        });
+        })
     }
 
     function getPlaylistContentByID(playlist_id) {
@@ -56,13 +56,30 @@ function Model() {
                 savedPlaylists[playlist_id] = result['playlist']
                 return savedPlaylists[playlist_id]
             }).then(success).catch(error);
-        });
+        })
+    }
+
+    function getSongInfo(track) {
+        return new Promise(function(success, error) {
+            var data = new FormData();
+            data.append('track', JSON.stringify(track))
+            data.append('csrfmiddlewaretoken', jQuery("[name=csrfmiddlewaretoken]").val());
+            fetch("http://localhost:8000/ajax/get_song_info/", {
+                method: 'POST',
+                body: data,
+                credentials: 'same-origin',
+            }).then(res=>res.json()).then(function(info) {
+                //console.log(info)
+                success(info['info'])
+            })
+        })
     }
 
     return {
         getCurrentPlaying: getCurrentPlaying,
         getUserPlaylist: getUserPlaylist,
         getPlaylistContentByID: getPlaylistContentByID,
+        getSongInfo: getSongInfo,
         getTrackByID: function(track_id) {
             for (list in savedPlaylists) {
                 for (track in savedPlaylists[list]) {
@@ -71,5 +88,6 @@ function Model() {
                 }
             }
         },
+
     }
 }
