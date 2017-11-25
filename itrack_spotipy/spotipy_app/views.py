@@ -117,14 +117,12 @@ def get_playlist_by_id(request):
     return JsonResponse({'playlist': tracklist})
 
 def get_song_info(request):
-    
     track = json.loads(request.POST.get('track'))
-    print(track)
     wiki_wapper = WikiDataWrapper()
     
     info = wiki_wapper.get_song_info(artist=track['artists'][0]['name'], artist_spotify_id=track['artists'][0]['id'],
         album=track['album'], album_spotify_id=track['album_id'], track=track['title'], track_spotify_id=track['album'])[0]
-    print(info)
+
     if 'album' in info and 'wiki' in info['album']:
         info['album']['text'] = BeautifulSoup(requests.get(info['album']['wiki']).text,"html.parser").findAll('p')[0].text
     if 'artist' in info and 'wiki' in info['artist']:
