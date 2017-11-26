@@ -44,6 +44,7 @@ function Controller() {
                 console.log(msg)
                 view.spotifyError()
             })
-        }
+        },
+        resetView: view.resetView
     }
 }

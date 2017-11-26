@@ -155,6 +155,15 @@ def get_playlist_by_id(request):
     response.set_cookie("spotify_id",json.dumps(token_info))
     return response
 
+def remove_brackets(text):
+    while True:
+        start = text.find( '[' )
+        end = text.find( ']' )
+        if start == -1 or end == -1:
+            break
+        text = text[:start] + text[end + 1:]            
+    return text
+
 def get_song_info(request):
     track = json.loads(request.POST.get('track'))
     wiki_wapper = WikiDataWrapper()
@@ -163,10 +172,10 @@ def get_song_info(request):
         album=track['album'], album_spotify_id=track['album_id'], track=track['title'], track_spotify_id=track['album'])[0]
 
     if 'album' in info and 'wiki' in info['album']:
-        info['album']['text'] = BeautifulSoup(requests.get(info['album']['wiki']).text,"html.parser").findAll('p')[0].text
+        info['album']['text'] = remove_brackets(BeautifulSoup(requests.get(info['album']['wiki']).text,"html.parser").findAll('p')[0].text)
     if 'artist' in info and 'wiki' in info['artist']:
-        info['artist']['text'] = BeautifulSoup(requests.get(info['artist']['wiki']).text,"html.parser").findAll('p')[0].text
+        info['artist']['text'] = remove_brackets(BeautifulSoup(requests.get(info['artist']['wiki']).text,"html.parser").findAll('p')[0].text)
     if 'song' in info and 'wiki' in info['song']:
-        info['song']['text'] = BeautifulSoup(requests.get(info['song']['wiki']).text,"html.parser").findAll('p')[0].text
+        info['song']['text'] = remove_brackets(BeautifulSoup(requests.get(info['song']['wiki']).text,"html.parser").findAll('p')[0].text)
 
     return JsonResponse({'info': info})
