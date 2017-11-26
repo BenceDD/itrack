@@ -248,10 +248,12 @@ class WikiDataWrapper:
         return entity_string
 
     def stringify_date_list(self, date_list):
+        return date_list[0]["mainsnak"]["datavalue"]["value"]["time"]
+
         date_string = ""
         i = 0
         for date in date_list:
-            date_string += date["mainsnak"]["datavalue"]["value"]["time"]
+            date_string += date
             if i < len(date_list) - 1:
                 date_string += ", "
             i = i+1
@@ -272,7 +274,8 @@ class WikiDataWrapper:
                 artist["awards"] = award_string;
             inception_list = attributes["claims"].get("P571")
             if inception_list is not None:
-                artist["inception"] = self.stringify_date_list(inception_list)
+                d = self.stringify_date_list(inception_list)
+                artist["inception"] = d[1:5]
         return artist
 
     def load_album(self, attributes):
@@ -290,7 +293,8 @@ class WikiDataWrapper:
                 album["producer"] = producer_string;
             release_date_list = attributes["claims"].get("P577")
             if release_date_list is not None:
-                album["release date"] = self.stringify_date_list(release_date_list)
+                d = self.stringify_date_list(release_date_list)
+                album["release date"] = d[1:5]
                 
         return album
 
@@ -313,7 +317,8 @@ class WikiDataWrapper:
                 song["lyrics_by"] = lyrics_by_string;
             release_date_list = attributes["claims"].get("P577")
             if release_date_list is not None:
-                song["release date"] = self.stringify_date_list(release_date_list)
+                d = self.stringify_date_list(release_date_list)
+                song["release date"] = d[1:5]
         return song
 
     def wikidata_download_results(self, results):

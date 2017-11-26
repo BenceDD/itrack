@@ -13,7 +13,8 @@ function Controller() {
                     return model.getSongInfo(track)
                 }).then(function(info) {
                     view.displaySongInfo(info)
-                }).catch(function(){
+                }).catch(function(msg) {
+                    console.log(msg)
                     view.wikidataError()
                 })
             } else {
@@ -21,7 +22,8 @@ function Controller() {
                 view.displaySong(track, false)
                 model.getSongInfo(track).then(function(info) {
                     view.displaySongInfo(info)
-                }).catch(function(){
+                }).catch(function(msg) {
+                    console.log(msg)
                     view.wikidataError()
                 })
             }
@@ -29,7 +31,8 @@ function Controller() {
         updatePlaylistCards: function() {
             model.getUserPlaylist().then(function(playlists) {
                 view.displayPlaylistCards(playlists)
-            }).catch(function() {
+            }).catch(function(msg) {
+                console.log(msg)
                 view.spotifyError()
             })
         },
@@ -37,7 +40,8 @@ function Controller() {
             // this name 'fillPlaylistCardWithSongs' referred in the createPlaylistCard method!!
             model.getPlaylistContentByID(playlist_id).then(function(tracklist) {
                 view.displayPlaylistCardContent(playlist_id, tracklist)
-            }).catch(function(){
+            }).catch(function(msg) {
+                console.log(msg)
                 view.spotifyError()
             })
         }

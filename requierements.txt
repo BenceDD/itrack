@@ -1,0 +1,6 @@
+django
+spotipy
+wikidata
+bleach
+bs4
+SPARQLWrapper
