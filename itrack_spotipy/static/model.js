@@ -7,7 +7,8 @@ function Model() {
     function getCurrentPlaying() {
         return new Promise(function(success, error) {
             fetch('http://localhost:8000/ajax/get_current_listening/', {
-                method: 'get'
+                method: 'get',
+                credentials: 'same-origin',
             }).then(res=>res.json()).then(function(result) {
                 return result['track']
             }).then(success).catch(error);
@@ -21,7 +22,8 @@ function Model() {
                 return
             }
             fetch('http://localhost:8000/ajax/get_user_playlists/', {
-                method: 'get'
+                method: 'get',
+                credentials: 'same-origin',
             }).then(res=>res.json()).then(function(result) {
                 userPlaylist = result['playlists']
                 return userPlaylist
