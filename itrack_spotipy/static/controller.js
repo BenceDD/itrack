@@ -10,6 +10,7 @@ function Controller() {
                     view.displaySong(track, true)
                     return track
                 }).then(function(track) {
+                    view.wikidataLoading()
                     return model.getSongInfo(track)
                 }).then(function(info) {
                     view.displaySongInfo(info)
@@ -20,6 +21,7 @@ function Controller() {
             } else {
                 var track = model.getTrackByID(track_id)
                 view.displaySong(track, false)
+                view.wikidataLoading()
                 model.getSongInfo(track).then(function(info) {
                     view.displaySongInfo(info)
                 }).catch(function(msg) {

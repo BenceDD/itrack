@@ -96,14 +96,20 @@ function View() {
         empty_song_card_info_list()
         empty_album_card_info_list()
         empty_artist_card_info_list()
+        set_song_card_header('')
+        set_song_card_title('')
+        set_song_card_content('')
     }
 
     function spotifyLoading() {
         resetView()
         set_song_card_header('Betöltés...')
-        set_album_card_title('A jelenleg hallgatott szám címe')
-        set_song_card_content('Itt fognak majd megjelenni az információk a kiválaszott számmal kapcsolatban.<br>Az adatok lekérése folyamatban...<br>')
+        set_song_card_title('A jelenleg hallgatott szám címe')
         set_album_cover_src(default_album_cover)
+    }
+
+    function wikidataLoading() {
+        set_song_card_content('Itt fognak majd megjelenni az információk a kiválaszott számmal kapcsolatban.<br>Az adatok lekérése folyamatban...<br>')
     }
 
     function displaySong(track, now_playlig) {
@@ -221,12 +227,14 @@ function View() {
 
     return {
         spotifyLoading: spotifyLoading,
+        wikidataLoading: wikidataLoading,
         displaySong: displaySong,
         displayPlaylistCards: displayPlaylistCards,
         displayPlaylistCardContent: displayPlaylistCardContent,
         displaySongInfo: displaySongInfo,
         spotifyError: function() {
-            set_song_card_header('A Spotify sajnos nem éhető el')
+            resetView()
+            set_song_card_header('A Spotify nem éhető el!')
             set_song_card_title(':(')
         },
         wikidataError: function() {
