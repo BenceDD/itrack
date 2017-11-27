@@ -82,6 +82,13 @@ function View() {
     }
 
     // state functions
+    function fullResetView() {
+        resetView()
+        set_song_card_header('')
+        set_song_card_title('')
+        set_song_card_content('')
+    }
+
     function resetView() {
         toggle_album_card(false)
         toggle_artist_card(false)
@@ -96,15 +103,12 @@ function View() {
         empty_song_card_info_list()
         empty_album_card_info_list()
         empty_artist_card_info_list()
-        set_song_card_header('')
-        set_song_card_title('')
-        set_song_card_content('')
     }
 
     function spotifyLoading() {
         resetView()
         set_song_card_header('Betöltés...')
-        set_song_card_title('A jelenleg hallgatott szám címe')
+        set_song_card_content('Az adatok lekérése folyamatban...')
         set_album_cover_src(default_album_cover)
     }
 
@@ -154,8 +158,6 @@ function View() {
         // fill song...
         if ('text' in info['song'])
             set_song_card_content(info['song']['text'])
-        else
-            set_song_card_content('')
         if ('release date' in info['song']) 
             addList(get_song_card_info_list(), 'Megjelenés éve: ' + (new Date(info['song']['release date']).getFullYear()))
         if ('genre' in info['song']) 
@@ -233,13 +235,13 @@ function View() {
         displayPlaylistCardContent: displayPlaylistCardContent,
         displaySongInfo: displaySongInfo,
         spotifyError: function() {
-            resetView()
+            fullResetView()
             set_song_card_header('A Spotify nem éhető el!')
             set_song_card_title(':(')
         },
         wikidataError: function() {
             set_song_card_header('Valami gond volt a WikiData adatok lekérése közben...')
         },
-        resetView: resetView,
+        resetView: fullResetView,
     }
 }
